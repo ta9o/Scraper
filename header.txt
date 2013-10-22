@@ -1,0 +1,12 @@
+HTTP/1.1 200 OK
+Set-Cookie: app=c8a41751580407017060800064000000c8000000; expires=Tue, 21-Jan-2014 01:31:46 GMT; path=/
+Date: Tue, 22 Oct 2013 01:31:46 GMT
+Set-Cookie: JSESSIONID=B0E223E41400C7A1D633F820230EEC0D.app08; Path=/a8v2
+Accept-Ranges: bytes
+ETag: W/"5819-1381219202000"
+Last-Modified: Tue, 08 Oct 2013 08:00:02 GMT
+Content-Type: text/html
+Content-Length: 5819
+Vary: Accept-Encoding,User-Agent
+Connection: close
+
