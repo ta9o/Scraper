@@ -18,14 +18,7 @@ Class A8Login {
         $curl_connection = curl_init($_url);
 
         //set options
-        curl_setopt($curl_connection, CURLOPT_ENCODING, "gzip" );
-        curl_setopt($curl_connection, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($curl_connection, CURLOPT_USERAGENT, $this->ua);
-        curl_setopt($curl_connection, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($curl_connection, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($curl_connection, CURLOPT_HEADER, true);
-        curl_setopt($curl_connection, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($curl_connection, CURLOPT_REFERER, "http://www.a8.net/a8v2/");
+        $this->setUpCurl($curl_connection);
 
         //set data to be posted
         // curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_array);
@@ -33,8 +26,12 @@ Class A8Login {
         $result = curl_exec($curl_connection);
 
         preg_match('/^Set-Cookie:\s*([^;]*)/mi', $result, $m);
-        var_dump($m); 
+        echo $m[1];
+        // $this->setCookies($m[1]);
 
+        $curl_connection = curl_init("http://www.a8.net/a8v2/asLoginAction.do");
+        $this->setUpCurl($curl_connection);
+        curl_setopt($curl_connection, CURLOPT_COOKIE);
 
         /*
         $info = curl_getinfo($curl_connection);
@@ -54,8 +51,24 @@ Class A8Login {
          */
     }
 
-    private function setCookies($header) {
+    private function setUpCurl($ch) {
+        curl_setopt($ch, CURLOPT_ENCODING, "gzip" );
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->ua);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+        curl_setopt($ch, CURLOPT_REFERER, "http://www.a8.net/a8v2/");
+    }
 
+    private function setCookies($header) {
+        $parsed = parse_str($header, $arr);
+        echo trim($arr['app']);
+    }
+
+    private function separateKeyAndValue($str) {
+        
 
     }
 }
