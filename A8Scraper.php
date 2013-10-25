@@ -1,6 +1,8 @@
 <?php
 
-Class A8Login {
+require('A8Parser.php');
+
+Class A8Scraper {
 
     const A8_TOP = 'http://www.a8.net/a8v2';
     const A8_LOGIN = 'http://www.a8.net/a8v2/asLoginAction.do';
@@ -26,6 +28,41 @@ Class A8Login {
     }
 
     /**
+     * Member 画面の scrape
+     * TODO: 今はhtml取得してるだけ。必要な情報を scrape する処理を書く
+     * @arg $page: 各ページ名
+     */
+    public function scrape($page='') {
+        switch ($page) {
+            case 'member':
+                $ch = $this->makeConnection(self::A8_MEMBER, true, '', $this->cookie, true);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                
+                // TODO: scrape 処理
+                $parser = new A8Parser();
+                $parser->parseMember();
+                // TODO: scrape 処理
+
+                return $result;
+                break;
+            case 'search':
+                break;
+            case 'top_report':
+                break;
+            case 'quick_report':
+                break;
+            case 'shortcut':
+                break;
+            case 'charity_top':
+                break;
+            default:
+                exit("invalid page name");
+                break;
+        }
+    }
+
+    /**
      * Top画面, LoginAction へのアクセス
      * 必要な Cookie 情報を取得するため
      */
@@ -38,17 +75,6 @@ Class A8Login {
         $ch = $this->makeConnection(self::A8_LOGIN, true, $query, $this->cookie, true);
         curl_exec($ch);
         curl_close($ch);
-    }
-
-    /**
-     * Member 画面の scrape
-     * TODO: 今はhtml取得してるだけ。必要な情報を scrape する処理を書く
-     */
-    public function fetchMember() {
-        $ch = $this->makeConnection(self::A8_MEMBER, true, $query, $this->cookie, true);
-        $result = curl_exec($ch);
-        curl_close($ch);
-        return $result;
     }
 
     private function makeConnection($_url='', $_isPost=false, $_query='', $_cookie='', $_isSetCookie=true) {
@@ -69,7 +95,7 @@ Class A8Login {
                 // cookie の名前が決まっていない場合
                 $this->cookie = "/tmp/" . md5(date("Y-m-d H:i:s") . "cookie");
             }
-            if (self::DEBUG) { echo($this->cookie); }
+            if (self::DEBUG) { echo($this->cookie . "\n"); }
             curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookie); 
         }
         return $ch;

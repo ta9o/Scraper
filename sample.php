@@ -1,8 +1,8 @@
 <?php
 
-require_once "A8Login.php";
+require_once "A8Scraper.php";
 
-$a8 = new A8Login('ad0002', 'eg1151');
-$memberDom = $a8->fetchMember();
-echo $memberDom;
+$a8 = new A8Scraper('ad0002', 'eg1151');
+$memberDom = $a8->scrape('member');
+// echo $memberDom;
 
