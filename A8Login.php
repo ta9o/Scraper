@@ -1,102 +1,77 @@
 <?php
 
 Class A8Login {
+
+    const A8_TOP = 'http://www.a8.net/a8v2';
+    const A8_LOGIN = 'http://www.a8.net/a8v2/asLoginAction.do';
+    const A8_SEARCH = 'http://www.a8.net/a8v2/asSearchAction.do';
+    const A8_MEMBER = 'http://www.a8.net/a8v2/asMemberAction.do';
+    const A8_TOP_REPORT = 'http://www.a8.net/a8v2/asTopReportAction.do';
+    const A8_QUICK_REPORT = 'http://www.a8.net/a8v2/asQuickReportAction.do';
+    const A8_SHORTCUT = 'http://www.a8.net/a8v2/asShortCutMenu.do';
+    const A8_CHARITY_TOP = 'http://www.a8.net/a8v2/asCharityTopAction.do';
+    const DEBUG = true;
     
     private $ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:24.0) Gecko/20100101 Firefox/24.0";
-    // private $ua = "Mozilla/5.0 (iPhone; CPU iPhone OS 6_0 like Mac OS X) AppleWebKit/536.26 (KHTML, like Gecko) Version/6.0 Mobile/10A403 Safari/8536.25";
-    private $cookie = "";
+    private $cookie = ""; // TODO: cookie のファイル名を場合によっては外から見れるように public にする必要はある
     private $login = "";
     private $passwd = "";
     private $app = "";
 
-    public function __construct() {
+    public function __construct($_login = '', $_passwd = '') {
+        $this->login = $_login;
+        $this->passwd = $_passwd;
+        date_default_timezone_set('Asia/Tokyo');
+        $this->initialize();
     }
 
-    public function makeRequest($_url, $_method) {
-        if ( !$_url || !$_method ) { return "invalid argments"; }
+    /**
+     * Top画面, LoginAction へのアクセス
+     * 必要な Cookie 情報を取得するため
+     */
+    private function initialize() {
+        $ch = $this->makeConnection(self::A8_TOP, false, "", "", true);
+        curl_exec($ch);
+        curl_close($ch);
 
-            /*
-        $curl_connection = curl_init($_url);
-
-        //set options
-        $this->setUpCurl($curl_connection);
-
-        //set data to be posted
-        // curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $post_array);
-        //perform our request
-        $result = curl_exec($curl_connection);
-
-        preg_match('/^Set-Cookie:\s*([^;]*)/mi', $result, $m);
-        echo $m[1];
-        // $this->setCookies($m[1]);
-             */
-
-        // $curl_connection = curl_init("http://www.a8.net/a8v2/asLoginAction.do");
-        $curl_connection = curl_init("http://www.a8.net/a8v2/asLoginAction.do");
-        $this->setUpCurl($curl_connection);
-        // curl_setopt($curl_connection, CURLOPT_COOKIE, trim($m[1]));
-        curl_setopt($curl_connection, CURLOPT_COOKIE, "app=c8a41751580407016060800064000000c8000000");
-        $postData = "login=ad0002&passwd=eg1151&moa=/a8";
-        curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $postData);
-        curl_setopt($curl_connection, CURLOPT_POST, 1);
-        $r = curl_exec($curl_connection);
-        preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $r, $m);
-        // echo $r;
-
-        echo $m[1][0] . "\n";
-        echo $m[1][1] . "\n";
-
-
-        // $curl_connection = curl_init("http://www.a8.net/a8v2/asMemberAction.do");
-        $curl_connection = curl_init("http://www.a8.net/a8v2/asTopReportAction.do");
-        $this->setUpCurl($curl_connection);
-        // curl_setopt($curl_connection, CURLOPT_COOKIE, trim($m[1]));
-        curl_setopt($curl_connection, CURLOPT_COOKIE, $m[1][0] . ";" . $m[1][1]);
-        // $postData = "login=ad0002&passwd=eg1151&moa=/a8";
-        // curl_setopt($curl_connection, CURLOPT_POSTFIELDS, $postData);
-        // curl_setopt($curl_connection, CURLOPT_POST, 1);
-        $res = curl_exec($curl_connection);
-        preg_match_all('/^Set-Cookie:\s*([^;]*)/mi', $r, $m);
-
-        echo $res;
-
-        /*
-        $info = curl_getinfo($curl_connection);
-        $header = substr($result, 0, $info["header_size"]);
-        $body = substr($result, $info["header_size"]);
-        
-
-        echo $header . "\n";
-        // echo $body . "\n";
-
-        print $result;
-        //show information regarding the request
-        echo curl_errno($curl_connection) . '-' . 
-            curl_error($curl_connection);
-
-        //close the connection
-        curl_close($curl_connection);
-         */
+        $query = "login=" . $this->login . "&passwd=" . $this->passwd . "&moa=/a8";
+        $ch = $this->makeConnection(self::A8_LOGIN, true, $query, $this->cookie, true);
+        curl_exec($ch);
+        curl_close($ch);
     }
 
-    private function setUpCurl($ch) {
+    /**
+     * Member 画面の scrape
+     * TODO: 今はhtml取得してるだけ。必要な情報を scrape する処理を書く
+     */
+    public function fetchMember() {
+        $ch = $this->makeConnection(self::A8_MEMBER, true, $query, $this->cookie, true);
+        $result = curl_exec($ch);
+        curl_close($ch);
+        return $result;
+    }
+
+    private function makeConnection($_url='', $_isPost=false, $_query='', $_cookie='', $_isSetCookie=true) {
+        $ch = curl_init($_url);
         curl_setopt($ch, CURLOPT_ENCODING, "gzip" );
         curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_USERAGENT, $this->ua);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_REFERER, "http://www.a8.net/a8v2/");
-    }
-
-    private function setCookies($header) {
-        $parsed = parse_str($header, $arr);
-        echo trim($arr['app']);
-    }
-
-    private function separateKeyAndValue($str) {
-        
-
-    }
+        curl_setopt($ch, CURLOPT_USERAGENT, $this->ua);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, $_cookie);
+        curl_setopt($ch, CURLOPT_POST, $_isPost);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $_query);
+        if ($_isSetCookie) { 
+            if (!$this->cookie || strlen($this->cookie) == 0) {
+                // cookie の名前が決まっていない場合
+                $this->cookie = "/tmp/" . md5(date("Y-m-d H:i:s") . "cookie");
+            }
+            if (self::DEBUG) { echo($this->cookie); }
+            curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookie); 
+        }
+        return $ch;
+    } 
 }
