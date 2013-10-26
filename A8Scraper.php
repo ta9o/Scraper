@@ -12,6 +12,9 @@ Class A8Scraper {
     const A8_QUICK_REPORT = 'http://www.a8.net/a8v2/asQuickReportAction.do';
     const A8_SHORTCUT = 'http://www.a8.net/a8v2/asShortCutMenu.do';
     const A8_CHARITY_TOP = 'http://www.a8.net/a8v2/asCharityTopAction.do';
+
+    const A8_SELFBACK_SEARCH = 'https://www.a8.net/a8v2/selfback/asSearchAction.do';
+
     const DEBUG = true;
     
     private $ua = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.8; rv:24.0) Gecko/20100101 Firefox/24.0";
@@ -41,12 +44,32 @@ Class A8Scraper {
                 
                 // TODO: scrape 処理
                 $parser = new A8Parser();
-                $parser->parseMember();
+                $parser->parseMember($result);
                 // TODO: scrape 処理
 
                 return $result;
                 break;
             case 'search':
+                $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH, true, '', $this->cookie, true);
+                $result = curl_exec($ch);
+                curl_close($ch);
+                $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
+
+                $parser = new A8Parser();
+                $searchModelArr = $parser->parseSearch($htmlStr);
+
+                foreach($searchModelArr as $searchModel) {
+                    // echo $searchModel->clickInsId . "\n";
+                    $postData = "clickInsId=" . $searchModel->clickInsId . "&act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed'];
+                    echo $postData . "\n";
+
+                    $ch = $this->makeConnection(self::A8_SEARCH, true, $postData, $this->cookie, true);
+                    $result = curl_exec($ch);
+                    // echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
+                    exit("done"); 
+                }
+
+
                 break;
             case 'top_report':
                 break;
@@ -93,9 +116,13 @@ Class A8Scraper {
         if ($_isSetCookie) { 
             if (!$this->cookie || strlen($this->cookie) == 0) {
                 // cookie の名前が決まっていない場合
-                $this->cookie = "/tmp/" . md5(date("Y-m-d H:i:s") . "cookie");
+                $this->cookie = "/tmp/a8/" . md5(date("Y-m-d H:i:s") . "cookie");
             }
-            if (self::DEBUG) { echo($this->cookie . "\n"); }
+            // if (self::DEBUG) { echo($this->cookie . "\n"); }
+            if (self::DEBUG) { 
+                $command = "cat " . $this->cookie;
+                echo `${command}` . "\n\n";
+            }
             curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookie); 
         }
         return $ch;
