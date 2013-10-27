@@ -6,7 +6,7 @@ Class A8Scraper {
 
     const A8_TOP = 'http://www.a8.net/a8v2';
     const A8_LOGIN = 'http://www.a8.net/a8v2/asLoginAction.do';
-    const A8_SEARCH = 'http://www.a8.net/a8v2/asSearchAction.do';
+    const A8_SEARCH = 'https://www.a8.net/a8v2/asSearchAction.do';
     const A8_MEMBER = 'http://www.a8.net/a8v2/asMemberAction.do';
     const A8_TOP_REPORT = 'http://www.a8.net/a8v2/asTopReportAction.do';
     const A8_QUICK_REPORT = 'http://www.a8.net/a8v2/asQuickReportAction.do';
@@ -58,17 +58,16 @@ Class A8Scraper {
                 $parser = new A8Parser();
                 $searchModelArr = $parser->parseSearch($htmlStr);
 
+                $fixedPostData = "act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed']; 
                 foreach($searchModelArr as $searchModel) {
-                    // echo $searchModel->clickInsId . "\n";
-                    $postData = "clickInsId=" . $searchModel->clickInsId . "&act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed'];
+                    $postData = $fixedPostData . "&clickInsId=" . $searchModel->clickInsId;
                     echo $postData . "\n";
 
                     $ch = $this->makeConnection(self::A8_SEARCH, true, $postData, $this->cookie, true);
                     $result = curl_exec($ch);
-                    // echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
+                    echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
                     exit("done"); 
                 }
-
 
                 break;
             case 'top_report':
@@ -103,9 +102,9 @@ Class A8Scraper {
     private function makeConnection($_url='', $_isPost=false, $_query='', $_cookie='', $_isSetCookie=true) {
         $ch = curl_init($_url);
         curl_setopt($ch, CURLOPT_ENCODING, "gzip" );
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 100);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
         curl_setopt($ch, CURLOPT_REFERER, "http://www.a8.net/a8v2/");
@@ -118,10 +117,9 @@ Class A8Scraper {
                 // cookie の名前が決まっていない場合
                 $this->cookie = "/tmp/a8/" . md5(date("Y-m-d H:i:s") . "cookie");
             }
-            // if (self::DEBUG) { echo($this->cookie . "\n"); }
             if (self::DEBUG) { 
                 $command = "cat " . $this->cookie;
-                echo `${command}` . "\n\n";
+                // echo `${command}` . "\n\n";
             }
             curl_setopt($ch, CURLOPT_COOKIEJAR, $this->cookie); 
         }

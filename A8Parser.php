@@ -8,10 +8,8 @@ require_once 'A8SelfSearchModel.php';
  */
 Class A8Parser {
 
-    private $searchModel = '';
 
     public function __construct() {
-        $this->searchModel = new A8SelfSearchModel();
     }
 
     public function parseMember($htmlStr) {
@@ -29,8 +27,10 @@ Class A8Parser {
             preg_match("/\('(.*)'\)/is", $a->onclick, $retArr);
             foreach(array($retArr) as $ret) {
                 // echo $ret[1] . "\n";
-                $this->searchModel->clickInsId = $ret[1];
-                $searchModelArr[] = $this->searchModel;
+                $searchModel = new A8SelfSearchModel();
+                $searchModel->clickInsId = $ret[1];
+                $searchModelArr[] = $searchModel;
+                unset($searchModel);
             }
         }
 
