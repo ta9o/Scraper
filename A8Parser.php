@@ -23,14 +23,17 @@ Class A8Parser {
         $tables = $html->find('div[id=areaLeft02] tbody a[onclick]');
         $searchModelArr = array();
         foreach($tables as $a) {
-            // echo $a->onclick . "\n";
-            preg_match("/\('(.*)'\)/is", $a->onclick, $retArr);
-            foreach(array($retArr) as $ret) {
-                // echo $ret[1] . "\n";
-                $searchModel = new A8SelfSearchModel();
-                $searchModel->clickInsId = $ret[1];
-                $searchModelArr[] = $searchModel;
-                unset($searchModel);
+            if ($a->href = "javascript:void(0);") {
+                preg_match("/do_confirm\('(.*)'\)/is", $a->onclick, $retArr);
+                if (isset($retArr[1])) {
+                    foreach(array($retArr) as $ret) {
+                        // echo $ret[1] . "\n";
+                        $searchModel = new A8SelfSearchModel();
+                        $searchModel->clickInsId = $ret[1];
+                        $searchModelArr[] = $searchModel;
+                        unset($searchModel);
+                    }
+                }
             }
         }
 
@@ -48,6 +51,61 @@ Class A8Parser {
             }
         }
         return $searchModelArr;
+    }
+
+    public function parseSearchDetail($htmlStr) {
+        $html = str_get_html($htmlStr);
+
+        $trs = $html->find('table[class=programSearch_details] tr td');
+        $searchModel = new A8SelfSearchModel();
+        foreach($trs as $key => $tr) {
+            switch($key) {
+                case 0:
+                    $searchModel->sponsorName = $tr->plaintext;
+                    break;
+                case 1:
+                    $searchModel->programName = $tr->plaintext;
+                    break;
+                case 2:
+                    $searchModel->category= $tr->plaintext;
+                    break;
+                case 3:
+                    $searchModel->device = $tr->plaintext;
+                    break;
+                case 4:
+                    $searchModel->reward = $tr->plaintext;
+                    break;
+                case 5:
+                    $searchModel->campaign = $tr->plaintext;
+                    break;
+                case 6:
+                    $searchModel->detailComment = $tr->plaintext;
+                    break;
+                case 7:
+                    $searchModel->review = $tr->plaintext;
+                    break;
+                case 8:
+                    $searchModel->revisitTimeSpan = $tr->plaintext;
+                    break;
+                case 9:
+                    $searchModel->estimation = $tr->plaintext;
+                    break;
+                case 10:
+                    $searchModel->status = $tr->plaintext;
+                    break;
+                case 11:
+                    $searchModel->status = $tr->plaintext;
+                    break;
+                case 12:
+                    $searchModel->keyword = $tr->plaintext;
+                    break;
+                case 13:
+                    $searchModel->appealSite = $tr->plaintext;
+                    break;
+            }
+        }
+        var_dump($searchModel);
+
     }
 
     public function parseTopReport() {

@@ -65,7 +65,11 @@ Class A8Scraper {
 
                     $ch = $this->makeConnection(self::A8_SEARCH, true, $postData, $this->cookie, true);
                     $result = curl_exec($ch);
-                    echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
+                    // echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
+                    $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
+
+                    $parser->parseSearchDetail($htmlStr);
+
                     exit("done"); 
                 }
 
