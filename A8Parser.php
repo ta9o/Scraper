@@ -10,6 +10,7 @@ Class A8Parser {
 
 
     public function __construct() {
+
     }
 
     public function parseMember($htmlStr) {
@@ -104,7 +105,8 @@ Class A8Parser {
                     break;
             }
         }
-        var_dump($searchModel);
+        // var_dump($searchModel);
+        return $searchModel;
 
     }
 
