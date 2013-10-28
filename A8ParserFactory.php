@@ -2,9 +2,11 @@
 
 require_once 'A8SelfSearchParser.php';
 
-Class A8Parser2 {
+Class A8ParserFactory {
 
-    public function __construct($pageName) {
+    public function __construct() {}
+
+    public function create($pageName) {
         $class = '';
         switch($pageName) {
             case 'selfSearch':
@@ -16,5 +18,5 @@ Class A8Parser2 {
         return $class;
     }
 
-    protected function scrape() {}
+    public function parse() { echo "parser2\n"; }
 }

@@ -1,6 +1,6 @@
 <?php
 
-require('A8Parser.php');
+require('A8ParserFactory.php');
 
 Class A8Scraper {
 
@@ -51,21 +51,22 @@ Class A8Scraper {
                 break;
             case 'search':
                 // TODO: paging 処理を入れる
-                // A8SelfbackSearchScraper つくって、そこで処理書いたほうがいいかも
-                //
+
                 $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH, true, '', $this->cookie, true);
                 $result = curl_exec($ch);
                 curl_close($ch);
                 $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
 
-                $parser = new A8Parser();
-                $searchModelArr = $parser->parseSearch($htmlStr);
+                $factory = new A8ParserFactory();
+                $parser = $factory->create('selfSearch');
+                // $searchModelArr = $parser->parseSearch($htmlStr);
+                $searchModelArr = $parser->parse($htmlStr);
 
                 $fixedPostData = "act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed']; 
 
                 $searchDetailArr = array();
-                foreach($searchModelArr as $searchModel) {
-                    if (strlen($searchModel->clickInsId) == 0) { continue; }
+                foreach((array)$searchModelArr as $key=>$searchModel) {
+                    if ($key == 'act' || $key == 'sealed' || strlen($searchModel->clickInsId) == 0) { continue; }
                     $postData = $fixedPostData . "&clickInsId=" . $searchModel->clickInsId;
                     echo $postData . "\n";
 
