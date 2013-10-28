@@ -13,7 +13,7 @@ Class A8Scraper {
     const A8_SHORTCUT = 'http://www.a8.net/a8v2/asShortCutMenu.do';
     const A8_CHARITY_TOP = 'http://www.a8.net/a8v2/asCharityTopAction.do';
 
-    const A8_SELFBACK_SEARCH = 'https://www.a8.net/a8v2/selfback/asSearchAction.do';
+    const A8_SELFBACK_SEARCH = 'https://www.a8.net/a8v2/selfback/asSearchAction.do?CPage=';
 
     const DEBUG = true;
     
@@ -34,8 +34,9 @@ Class A8Scraper {
      * Member 画面の scrape
      * TODO: 今はhtml取得してるだけ。必要な情報を scrape する処理を書く
      * @arg $page: 各ページ名
+     * @arg $maxPageNum: paging させたいページ数
      */
-    public function scrape($page='') {
+    public function scrape($page='', $maxPageNum) {
         switch ($page) {
             case 'member':
                 $ch = $this->makeConnection(self::A8_MEMBER, true, '', $this->cookie, true);
@@ -51,31 +52,36 @@ Class A8Scraper {
                 break;
             case 'search':
                 // TODO: paging 処理を入れる
-
-                $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH, true, '', $this->cookie, true);
-                $result = curl_exec($ch);
-                curl_close($ch);
-                $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
-
-                $factory = new A8ParserFactory();
-                $parser = $factory->create('selfSearch');
-                // $searchModelArr = $parser->parseSearch($htmlStr);
-                $searchModelArr = $parser->parse($htmlStr);
-
-                $fixedPostData = "act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed']; 
-
                 $searchDetailArr = array();
-                foreach((array)$searchModelArr as $key=>$searchModel) {
-                    if ($key == 'act' || $key == 'sealed' || strlen($searchModel->clickInsId) == 0) { continue; }
-                    $postData = $fixedPostData . "&clickInsId=" . $searchModel->clickInsId;
-                    echo $postData . "\n";
 
-                    $ch = $this->makeConnection(self::A8_SEARCH, true, $postData, $this->cookie, true);
+                for($page=1; $page <= $maxPageNum; $page++) {
+
+                    $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH, true, '', $this->cookie, true);
                     $result = curl_exec($ch);
-                    // echo mb_convert_encoding($result, "UTF-8", "EUC-JP");
+                    curl_close($ch);
                     $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
 
-                    $searchDetailArr[] =  $parser->parseSearchDetail($htmlStr);
+                    $factory = new A8ParserFactory();
+                    $parser = $factory->create('selfSearch');
+                    $searchModelArr = $parser->parse($htmlStr);
+
+                    $fixedPostData = "act=" . $searchModelArr['act'] . "&sealed=" . $searchModelArr['sealed']; 
+
+                    // $searchDetailArr = array();
+                    foreach((array)$searchModelArr as $key=>$searchModel) {
+                        if ($key == 'act' || $key == 'sealed' || strlen($searchModel->clickInsId) == 0) { continue; }
+
+                        $postData = $fixedPostData . "&clickInsId=" . $searchModel->clickInsId;
+
+                        if (DEBUG) { echo $postData . "\n"; }
+
+                        $ch = $this->makeConnection(self::A8_SEARCH, true, $postData, $this->cookie, true);
+                        $result = curl_exec($ch);
+                        $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
+
+                        $searchDetailArr[] =  $parser->parseSearchDetail($htmlStr);
+                    }
+
                 }
 
                 return $searchDetailArr;
