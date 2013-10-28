@@ -56,7 +56,7 @@ Class A8Scraper {
 
                 for($page=1; $page <= $maxPageNum; $page++) {
 
-                    $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH, true, '', $this->cookie, true);
+                    $ch = $this->makeConnection(self::A8_SELFBACK_SEARCH . "${page}", true, '', $this->cookie, true);
                     $result = curl_exec($ch);
                     curl_close($ch);
                     $htmlStr = mb_convert_encoding($result, "UTF-8", "EUC-JP");
@@ -81,6 +81,9 @@ Class A8Scraper {
 
                         $searchDetailArr[] =  $parser->parseSearchDetail($htmlStr);
                     }
+
+                    unset($factory);
+                    unset($parser);
 
                 }
 
